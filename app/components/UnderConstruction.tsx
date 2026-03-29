@@ -127,23 +127,18 @@ export default function UnderConstruction() {
           </motion.div>
 
           {/* Centerpiece Animation */}
-          <motion.div
-            variants={itemVariants}
-            style={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              marginBottom: 32,
-              transform: 'scale(0.85)',
-            }}
+          <Box
             sx={{
-              '@media (min-width: 600px)': {
-                marginBottom: 48,
-                transform: 'scale(1)',
-              }
+              display: 'flex',
+              justifyContent: 'center',
+              mb: { xs: 4, sm: 6 },
+              transform: { xs: 'scale(0.85)', sm: 'scale(1)' },
             }}
           >
-            <CenterpieceAnimation />
-          </motion.div>
+            <motion.div variants={itemVariants}>
+              <CenterpieceAnimation />
+            </motion.div>
+          </Box>
 
           {/* Main Heading */}
           <motion.div variants={itemVariants}>
