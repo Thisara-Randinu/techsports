@@ -3,7 +3,7 @@ import ThemeRegistry from "./ThemeRegistry";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "TechSports - Coming Soon",
+  title: "TechSport - Coming Soon",
   description: "We're building something amazing. Stay tuned for the big reveal!",
 };
 

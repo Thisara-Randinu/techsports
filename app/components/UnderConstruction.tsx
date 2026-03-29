@@ -274,7 +274,7 @@ export default function UnderConstruction() {
             px: 2,
           }}
         >
-          © 2026 TechSports. All rights reserved.
+          © 2026 TechSport. All rights reserved.
         </Typography>
       </Box>
     </Box>
