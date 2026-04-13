@@ -30,7 +30,10 @@ function resolveProductImageSrc(image: string) {
 
   try {
     const url = new URL(image);
-    if (url.hostname.includes(".private.blob.vercel-storage.com")) {
+    if (
+      url.hostname === "private.blob.vercel-storage.com" ||
+      url.hostname.endsWith(".private.blob.vercel-storage.com")
+    ) {
       return `/api/blob?pathname=${encodeURIComponent(url.pathname.slice(1))}`;
     }
   } catch {
