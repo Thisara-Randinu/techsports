@@ -28,10 +28,7 @@ function resolveProductImageSrc(image: string) {
 
   try {
     const url = new URL(image);
-    if (
-      url.hostname === "private.blob.vercel-storage.com" ||
-      url.hostname.endsWith(".private.blob.vercel-storage.com")
-    ) {
+    if (url.hostname.includes(".private.blob.vercel-storage.com")) {
       return `/api/blob?pathname=${encodeURIComponent(url.pathname.slice(1))}`;
     }
   } catch {
@@ -366,8 +363,7 @@ export default function Home() {
                     src={resolveProductImageSrc(item.image)}
                     alt={item.title}
                     fill
-                    priority={index === 0}
-                    quality={70}
+                    unoptimized
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />

@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       status: 304,
       headers: {
         ETag: result.blob.etag,
-        "Cache-Control": "private, max-age=31536000, immutable",
+        "Cache-Control": "private, no-cache",
       },
     });
   }
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     headers: {
       "Content-Type": result.blob.contentType,
       ETag: result.blob.etag,
-      "Cache-Control": "private, max-age=31536000, immutable",
+      "Cache-Control": "private, no-cache",
       "X-Content-Type-Options": "nosniff",
     },
   });
