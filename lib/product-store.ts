@@ -1,0 +1,80 @@
+import { defaultProducts, type Product } from "./products";
+import { redis } from "./redis-client";
+
+const PRODUCT_KEY = "techsports:products";
+
+export async function getProducts(): Promise<Product[]> {
+  if (!redis) {
+    return defaultProducts;
+  }
+
+  const products = await redis.get<Product[]>(PRODUCT_KEY);
+  if (products) {
+    return products;
+  }
+
+  await redis.set(PRODUCT_KEY, []);
+  return [];
+}
+
+type ProductInput = Omit<Product, "id" | "createdAt">;
+
+export async function addProduct(input: ProductInput): Promise<Product> {
+  if (!redis) {
+    throw new Error("Upstash Redis is not configured.");
+  }
+
+  const currentProducts = (await redis.get<Product[]>(PRODUCT_KEY)) ?? [];
+  const newProduct: Product = {
+    ...input,
+    id: crypto.randomUUID(),
+    createdAt: new Date().toISOString(),
+  };
+
+  await redis.set(PRODUCT_KEY, [newProduct, ...currentProducts]);
+  return newProduct;
+}
+
+export async function updateProduct(
+  id: string,
+  updates: Partial<ProductInput>,
+): Promise<Product> {
+  if (!redis) {
+    throw new Error("Upstash Redis is not configured.");
+  }
+
+  const currentProducts = (await redis.get<Product[]>(PRODUCT_KEY)) ?? [];
+  const index = currentProducts.findIndex((product) => product.id === id);
+
+  if (index === -1) {
+    throw new Error("Product not found.");
+  }
+
+  const updatedProduct: Product = {
+    ...currentProducts[index],
+    ...updates,
+  };
+
+  const updatedProducts = [...currentProducts];
+  updatedProducts[index] = updatedProduct;
+  await redis.set(PRODUCT_KEY, updatedProducts);
+
+  return updatedProduct;
+}
+
+export async function removeProduct(id: string): Promise<void> {
+  if (!redis) {
+    throw new Error("Upstash Redis is not configured.");
+  }
+
+  const currentProducts = (await redis.get<Product[]>(PRODUCT_KEY)) ?? [];
+  const updatedProducts = currentProducts.filter(
+    (product) => product.id !== id,
+  );
+
+  if (updatedProducts.length === currentProducts.length) {
+    throw new Error("Product not found.");
+  }
+
+  await redis.set(PRODUCT_KEY, updatedProducts);
+}

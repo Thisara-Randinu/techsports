@@ -34,3 +34,25 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Admin Product Management
+
+This project includes a credential-protected admin page at `/admin/products`.
+
+1. Configure credentials in environment variables:
+   - `ADMIN_USERNAME`
+   - `ADMIN_PASSWORD`
+2. Open `/admin/products` and authenticate with Basic Auth.
+3. Submit the product form to upload image + save product metadata.
+
+### Storage on Vercel
+
+Images are stored in Vercel Blob and product data is stored in Upstash Redis (through Vercel integration).
+
+Required environment variables:
+
+- `BLOB_READ_WRITE_TOKEN`
+- `UPSTASH_REDIS_REST_URL`
+- `UPSTASH_REDIS_REST_TOKEN`
+
+Use `.env.example` as the template for local development and set the same variables in your Vercel project settings for production.
