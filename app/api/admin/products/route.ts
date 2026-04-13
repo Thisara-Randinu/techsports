@@ -7,6 +7,10 @@ function asText(value: FormDataEntryValue | null) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function createImageUrl(pathname: string) {
+  return `/api/blob?pathname=${encodeURIComponent(pathname)}`;
+}
+
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
@@ -49,7 +53,7 @@ export async function POST(request: Request) {
       description,
       range,
       category,
-      image: blob.url,
+      image: createImageUrl(blob.pathname),
     });
 
     return NextResponse.json({ product }, { status: 201 });
@@ -92,7 +96,7 @@ export async function PATCH(request: Request) {
         access: "private",
         addRandomSuffix: true,
       });
-      imageUrl = blob.url;
+      imageUrl = createImageUrl(blob.pathname);
     }
 
     const product = await updateProduct(id, {

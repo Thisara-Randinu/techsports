@@ -23,6 +23,23 @@ type FormState = {
   category: string;
 };
 
+function resolveProductImageSrc(image: string) {
+  if (image.startsWith("/api/blob?")) {
+    return image;
+  }
+
+  try {
+    const url = new URL(image);
+    if (url.hostname.includes(".private.blob.vercel-storage.com")) {
+      return `/api/blob?pathname=${encodeURIComponent(url.pathname.slice(1))}`;
+    }
+  } catch {
+    // Keep non-URL values as-is.
+  }
+
+  return image;
+}
+
 const emptyForm: FormState = {
   title: "",
   description: "",
@@ -517,7 +534,7 @@ export default function AdminProductsPage() {
                 >
                   <div className="relative mb-3 aspect-4/3 overflow-hidden rounded-xl">
                     <Image
-                      src={product.image}
+                      src={resolveProductImageSrc(product.image)}
                       alt={product.title}
                       fill
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"

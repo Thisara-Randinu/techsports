@@ -21,6 +21,23 @@ const aboutPoints = [
   },
 ];
 
+function resolveProductImageSrc(image: string) {
+  if (image.startsWith("/api/blob?")) {
+    return image;
+  }
+
+  try {
+    const url = new URL(image);
+    if (url.hostname.includes(".private.blob.vercel-storage.com")) {
+      return `/api/blob?pathname=${encodeURIComponent(url.pathname.slice(1))}`;
+    }
+  } catch {
+    // Keep non-URL values as-is.
+  }
+
+  return image;
+}
+
 export default function Home() {
   const { mode } = useThemeMode();
   const isDark = mode === "dark";
@@ -320,7 +337,7 @@ export default function Home() {
               >
                 <div className="relative mb-4 aspect-4/3 overflow-hidden rounded-xl">
                   <Image
-                    src={item.image}
+                    src={resolveProductImageSrc(item.image)}
                     alt={item.title}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
