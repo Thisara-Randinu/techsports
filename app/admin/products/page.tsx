@@ -152,7 +152,7 @@ export default function AdminProductsPage() {
     setFormState({
       title: product.title,
       description: product.description,
-      range: product.range,
+      range: product.range ?? "",
       category: product.category,
     });
     setImageFile(null);
