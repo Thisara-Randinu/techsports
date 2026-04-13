@@ -23,7 +23,7 @@ export const defaultProducts: Product[] = [
       "Lightweight stability trainers built for speed sessions and daily miles.",
     range: "$79 - $149",
     image:
-      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=75",
     category: "Footwear",
   },
   {
@@ -33,7 +33,7 @@ export const defaultProducts: Product[] = [
       "Sweat-wicking jersey and shorts set with ergonomic athletic cut.",
     range: "$35 - $98",
     image:
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=75",
     category: "Apparel",
   },
   {
@@ -43,7 +43,7 @@ export const defaultProducts: Product[] = [
       "Cones, ladder, and mini hurdles for explosiveness and footwork drills.",
     range: "$24 - $135",
     image:
-      "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=900&q=75",
     category: "Equipment",
   },
   {
@@ -53,7 +53,7 @@ export const defaultProducts: Product[] = [
       "Massage roller, mobility strap, and support tape for post-session care.",
     range: "$18 - $89",
     image:
-      "https://images.unsplash.com/photo-1598289431512-b97b0917affc?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1598289431512-b97b0917affc?auto=format&fit=crop&w=900&q=75",
     category: "Recovery",
   },
   {
@@ -63,7 +63,7 @@ export const defaultProducts: Product[] = [
       "High-grip outsole and responsive cushioning for rapid directional changes.",
     range: "$99 - $179",
     image:
-      "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?auto=format&fit=crop&w=900&q=75",
     category: "Footwear",
   },
   {
@@ -73,7 +73,7 @@ export const defaultProducts: Product[] = [
       "Breathable insulation layer for warm-ups and cooler evening training.",
     range: "$45 - $120",
     image:
-      "https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?auto=format&fit=crop&w=900&q=75",
     category: "Apparel",
   },
 ];

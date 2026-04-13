@@ -888,7 +888,7 @@ export default function AdminProductsPage() {
                       src={resolveProductImageSrc(product.image)}
                       alt={product.title}
                       fill
-                      unoptimized
+                      quality={70}
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       className="object-cover"
                     />
