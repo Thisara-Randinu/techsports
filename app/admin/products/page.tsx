@@ -57,6 +57,12 @@ export default function AdminProductsPage() {
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [reorderingProductId, setReorderingProductId] = useState<string | null>(
+    null,
+  );
+  const [reorderingCategoryName, setReorderingCategoryName] = useState<
+    string | null
+  >(null);
   const [formState, setFormState] = useState<FormState>(emptyForm);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [status, setStatus] = useState<Status>(null);
@@ -210,6 +216,85 @@ export default function AdminProductsPage() {
         message:
           error instanceof Error ? error.message : "Failed to remove product.",
       });
+    }
+  }
+
+  async function handleMoveProduct(
+    id: string | undefined,
+    direction: "up" | "down",
+  ) {
+    if (!id) return;
+
+    setReorderingProductId(id);
+    setStatus(null);
+
+    try {
+      const response = await fetch("/api/admin/products/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, direction }),
+      });
+
+      const data = (await response.json()) as {
+        message?: string;
+        products?: Product[];
+      };
+
+      if (!response.ok) {
+        throw new Error(data.message ?? "Failed to reorder product.");
+      }
+
+      setProducts(data.products ?? []);
+      setStatus({
+        type: "success",
+        message: "Product order updated successfully.",
+      });
+    } catch (error) {
+      setStatus({
+        type: "error",
+        message:
+          error instanceof Error ? error.message : "Failed to reorder product.",
+      });
+    } finally {
+      setReorderingProductId(null);
+    }
+  }
+
+  async function handleMoveCategory(name: string, direction: "up" | "down") {
+    setReorderingCategoryName(name);
+    setStatus(null);
+
+    try {
+      const response = await fetch("/api/admin/categories/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, direction }),
+      });
+
+      const data = (await response.json()) as {
+        message?: string;
+        categories?: string[];
+      };
+
+      if (!response.ok) {
+        throw new Error(data.message ?? "Failed to reorder category.");
+      }
+
+      setCategories(data.categories ?? []);
+      setStatus({
+        type: "success",
+        message: "Category order updated successfully.",
+      });
+    } catch (error) {
+      setStatus({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to reorder category.",
+      });
+    } finally {
+      setReorderingCategoryName(null);
     }
   }
 
@@ -499,6 +584,67 @@ export default function AdminProductsPage() {
           </form>
         </section>
 
+        <section
+          className={`mt-8 rounded-2xl border p-6 backdrop-blur ${
+            isDark
+              ? "border-white/15 bg-white/5"
+              : "border-[#18201f]/10 bg-white/80"
+          }`}
+        >
+          <h2 className="text-xl font-semibold">Category Order</h2>
+          <p
+            className={`mt-2 text-sm ${isDark ? "text-[#a3b4b0]" : "text-[#4f5d5b]"}`}
+          >
+            Use the arrows to control the order shown on the home page.
+          </p>
+
+          <div className="mt-4 space-y-2">
+            {categories.map((category, index) => (
+              <div
+                key={category}
+                className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 ${
+                  isDark
+                    ? "border-white/10 bg-[#15201e]"
+                    : "border-[#18201f]/10 bg-white"
+                }`}
+              >
+                <span className="text-sm font-medium">{category}</span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleMoveCategory(category, "up")}
+                    disabled={
+                      index === 0 || reorderingCategoryName === category
+                    }
+                    className={`rounded-full px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${
+                      isDark
+                        ? "bg-[#5f7f77] text-white"
+                        : "bg-[#18201f] text-white"
+                    }`}
+                  >
+                    Up
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleMoveCategory(category, "down")}
+                    disabled={
+                      index === categories.length - 1 ||
+                      reorderingCategoryName === category
+                    }
+                    className={`rounded-full px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${
+                      isDark
+                        ? "bg-[#5f7f77] text-white"
+                        : "bg-[#18201f] text-white"
+                    }`}
+                  >
+                    Down
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section className="mt-10">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold">Current Products</h2>
@@ -523,7 +669,7 @@ export default function AdminProductsPage() {
             </p>
           ) : (
             <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {products.map((product) => (
+              {products.map((product, index) => (
                 <article
                   key={product.id ?? product.title}
                   className={`rounded-2xl border p-4 backdrop-blur ${
@@ -554,9 +700,43 @@ export default function AdminProductsPage() {
                   >
                     {product.description}
                   </p>
-                  <p className="mt-3 text-sm font-medium">{product.range}</p>
+                  <p className="mt-3 text-sm font-medium">
+                    {product.range || "Price on request"}
+                  </p>
 
                   <div className="mt-4 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleMoveProduct(product.id, "up")}
+                      disabled={
+                        index === 0 ||
+                        reorderingProductId === product.id ||
+                        !product.id
+                      }
+                      className={`rounded-full px-4 py-2 text-sm font-medium ${
+                        isDark
+                          ? "bg-[#5f7f77] text-white disabled:opacity-50"
+                          : "bg-[#18201f] text-white disabled:opacity-50"
+                      }`}
+                    >
+                      Up
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMoveProduct(product.id, "down")}
+                      disabled={
+                        index === products.length - 1 ||
+                        reorderingProductId === product.id ||
+                        !product.id
+                      }
+                      className={`rounded-full px-4 py-2 text-sm font-medium ${
+                        isDark
+                          ? "bg-[#5f7f77] text-white disabled:opacity-50"
+                          : "bg-[#18201f] text-white disabled:opacity-50"
+                      }`}
+                    >
+                      Down
+                    </button>
                     <button
                       type="button"
                       onClick={() => startEditing(product)}

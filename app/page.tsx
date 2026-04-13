@@ -50,20 +50,30 @@ export default function Home() {
   useEffect(() => {
     async function loadData() {
       try {
-        const productsResponse = await fetch("/api/products", {
-          cache: "no-store",
-        });
+        const [productsResponse, categoriesResponse] = await Promise.all([
+          fetch("/api/products", { cache: "no-store" }),
+          fetch("/api/categories", { cache: "no-store" }),
+        ]);
 
+        let loadedProducts: Product[] = [];
         if (productsResponse.ok) {
           const productsData = (await productsResponse.json()) as {
             products?: Product[];
           };
-          const loadedProducts = productsData.products ?? [];
+          loadedProducts = productsData.products ?? [];
           setProducts(loadedProducts);
+        }
+
+        if (categoriesResponse.ok) {
+          const categoriesData = (await categoriesResponse.json()) as {
+            categories?: string[];
+          };
+          setCategories(categoriesData.categories ?? []);
+        } else if (loadedProducts.length > 0) {
           const derivedCategories = Array.from(
             new Set(loadedProducts.map((product) => product.category)),
           );
-          setCategories(["All", ...derivedCategories]);
+          setCategories(derivedCategories);
         }
       } catch {
         // Keep defaults if requests fail.
@@ -73,7 +83,20 @@ export default function Home() {
     loadData();
   }, []);
 
-  const activeCategory = categories.includes(selectedCategory)
+  const availableCategories = useMemo(
+    () =>
+      categories.filter((category) =>
+        products.some((product) => product.category === category),
+      ),
+    [categories, products],
+  );
+
+  const categoryOptions = useMemo(
+    () => ["All", ...availableCategories],
+    [availableCategories],
+  );
+
+  const activeCategory = categoryOptions.includes(selectedCategory)
     ? selectedCategory
     : "All";
 
@@ -226,7 +249,7 @@ export default function Home() {
                 className={`rounded-2xl p-3 ${isDark ? "bg-[#23312d]" : "bg-[#eef4e9]"}`}
               >
                 <p className="text-2xl font-semibold">
-                  {Math.max(categories.length - 1, 0)}
+                  {availableCategories.length}
                 </p>
                 <p className={isDark ? "text-[#a3b4b0]" : "text-[#4f5d5b]"}>
                   Core categories
@@ -296,7 +319,7 @@ export default function Home() {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              {categories.map((category) => {
+              {categoryOptions.map((category) => {
                 const active = activeCategory === category;
                 return (
                   <button

@@ -45,3 +45,36 @@ export async function addCategory(name: string): Promise<string[]> {
   await redis.set(CATEGORY_KEY, updatedCategories);
   return updatedCategories;
 }
+
+export async function moveCategory(
+  name: string,
+  direction: "up" | "down",
+): Promise<string[]> {
+  if (!redis) {
+    throw new Error("Upstash Redis is not configured.");
+  }
+
+  const currentCategories =
+    (await redis.get<string[]>(CATEGORY_KEY)) ?? productCategories;
+  const index = currentCategories.findIndex(
+    (category) => category.toLowerCase() === name.toLowerCase(),
+  );
+
+  if (index === -1) {
+    throw new Error("Category not found.");
+  }
+
+  const targetIndex = direction === "up" ? index - 1 : index + 1;
+  if (targetIndex < 0 || targetIndex >= currentCategories.length) {
+    return currentCategories;
+  }
+
+  const updatedCategories = [...currentCategories];
+  [updatedCategories[index], updatedCategories[targetIndex]] = [
+    updatedCategories[targetIndex],
+    updatedCategories[index],
+  ];
+
+  await redis.set(CATEGORY_KEY, updatedCategories);
+  return updatedCategories;
+}

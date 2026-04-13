@@ -78,3 +78,33 @@ export async function removeProduct(id: string): Promise<void> {
 
   await redis.set(PRODUCT_KEY, updatedProducts);
 }
+
+export async function moveProduct(
+  id: string,
+  direction: "up" | "down",
+): Promise<Product[]> {
+  if (!redis) {
+    throw new Error("Upstash Redis is not configured.");
+  }
+
+  const currentProducts = (await redis.get<Product[]>(PRODUCT_KEY)) ?? [];
+  const index = currentProducts.findIndex((product) => product.id === id);
+
+  if (index === -1) {
+    throw new Error("Product not found.");
+  }
+
+  const targetIndex = direction === "up" ? index - 1 : index + 1;
+  if (targetIndex < 0 || targetIndex >= currentProducts.length) {
+    return currentProducts;
+  }
+
+  const updatedProducts = [...currentProducts];
+  [updatedProducts[index], updatedProducts[targetIndex]] = [
+    updatedProducts[targetIndex],
+    updatedProducts[index],
+  ];
+
+  await redis.set(PRODUCT_KEY, updatedProducts);
+  return updatedProducts;
+}
