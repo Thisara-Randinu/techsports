@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     const category = asText(formData.get("category"));
     const imageFile = formData.get("image");
 
-    if (!title || !description || !range || !category) {
+    if (!title || !description || !category) {
       return NextResponse.json(
         { message: "Missing required fields." },
         { status: 400 },
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
 
     const safeName = imageFile.name.replace(/\s+/g, "-").toLowerCase();
     const blob = await put(`products/${Date.now()}-${safeName}`, imageFile, {
-      access: "public",
+      access: "private",
       addRandomSuffix: true,
     });
 
@@ -70,7 +70,7 @@ export async function PATCH(request: Request) {
     const category = asText(formData.get("category"));
     const imageFile = formData.get("image");
 
-    if (!id || !title || !description || !range || !category) {
+    if (!id || !title || !description || !category) {
       return NextResponse.json(
         { message: "Missing required fields." },
         { status: 400 },
@@ -89,7 +89,7 @@ export async function PATCH(request: Request) {
     if (imageFile instanceof File && imageFile.size > 0) {
       const safeName = imageFile.name.replace(/\s+/g, "-").toLowerCase();
       const blob = await put(`products/${Date.now()}-${safeName}`, imageFile, {
-        access: "public",
+        access: "private",
         addRandomSuffix: true,
       });
       imageUrl = blob.url;

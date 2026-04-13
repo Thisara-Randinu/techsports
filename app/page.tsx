@@ -351,7 +351,7 @@ export default function Home() {
                   <span
                     className={`text-sm font-medium ${isDark ? "text-[#edf3ef]" : "text-[#18201f]"}`}
                   >
-                    {item.range}
+                    {item.range || "Price on request"}
                   </span>
                   <span
                     className={`text-sm transition-transform duration-200 group-hover:translate-x-1 ${

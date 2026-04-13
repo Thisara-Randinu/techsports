@@ -353,12 +353,11 @@ export default function AdminProductsPage() {
                   htmlFor="range"
                   className="mb-2 block text-sm font-medium"
                 >
-                  Price Range
+                  Price Range (optional)
                 </label>
                 <input
                   id="range"
                   name="range"
-                  required
                   value={formState.range}
                   onChange={handleInputChange}
                   className={`w-full rounded-lg border px-3 py-2 text-sm ${
