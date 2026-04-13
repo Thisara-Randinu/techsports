@@ -1,5 +1,6 @@
 import { productCategories } from "./products";
 import { redis } from "./redis-client";
+import { getProducts } from "./product-store";
 
 const CATEGORY_KEY = "techsports:categories";
 
@@ -74,6 +75,74 @@ export async function moveCategory(
     updatedCategories[targetIndex],
     updatedCategories[index],
   ];
+
+  await redis.set(CATEGORY_KEY, updatedCategories);
+  return updatedCategories;
+}
+
+export async function moveCategoryToPosition(
+  name: string,
+  position: number,
+): Promise<string[]> {
+  if (!redis) {
+    throw new Error("Upstash Redis is not configured.");
+  }
+
+  const currentCategories =
+    (await redis.get<string[]>(CATEGORY_KEY)) ?? productCategories;
+  const index = currentCategories.findIndex(
+    (category) => category.toLowerCase() === name.toLowerCase(),
+  );
+
+  if (index === -1) {
+    throw new Error("Category not found.");
+  }
+
+  const targetIndex = Math.min(
+    Math.max(Math.trunc(position) - 1, 0),
+    currentCategories.length - 1,
+  );
+
+  if (targetIndex === index) {
+    return currentCategories;
+  }
+
+  const updatedCategories = [...currentCategories];
+  const [movedCategory] = updatedCategories.splice(index, 1);
+  updatedCategories.splice(targetIndex, 0, movedCategory);
+
+  await redis.set(CATEGORY_KEY, updatedCategories);
+  return updatedCategories;
+}
+
+export async function removeCategory(name: string): Promise<string[]> {
+  if (!redis) {
+    throw new Error("Upstash Redis is not configured.");
+  }
+
+  const normalized = normalizeCategoryName(name);
+  if (!normalized) {
+    throw new Error("Category name is required.");
+  }
+
+  const products = await getProducts();
+  const inUse = products.some(
+    (product) => product.category.toLowerCase() === normalized.toLowerCase(),
+  );
+
+  if (inUse) {
+    throw new Error("Category is in use by existing products.");
+  }
+
+  const currentCategories =
+    (await redis.get<string[]>(CATEGORY_KEY)) ?? productCategories;
+  const updatedCategories = currentCategories.filter(
+    (category) => category.toLowerCase() !== normalized.toLowerCase(),
+  );
+
+  if (updatedCategories.length === currentCategories.length) {
+    throw new Error("Category not found.");
+  }
 
   await redis.set(CATEGORY_KEY, updatedCategories);
   return updatedCategories;

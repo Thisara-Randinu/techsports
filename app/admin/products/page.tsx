@@ -60,7 +60,16 @@ export default function AdminProductsPage() {
   const [reorderingProductId, setReorderingProductId] = useState<string | null>(
     null,
   );
+  const [reorderingProductPosition, setReorderingProductPosition] = useState<
+    Record<string, string>
+  >({});
   const [reorderingCategoryName, setReorderingCategoryName] = useState<
+    string | null
+  >(null);
+  const [reorderingCategoryPosition, setReorderingCategoryPosition] = useState<
+    Record<string, string>
+  >({});
+  const [deletingCategoryName, setDeletingCategoryName] = useState<
     string | null
   >(null);
   const [formState, setFormState] = useState<FormState>(emptyForm);
@@ -78,6 +87,7 @@ export default function AdminProductsPage() {
       const data = (await response.json()) as { products?: Product[] };
       const loadedProducts = data.products ?? [];
       setProducts(loadedProducts);
+      setReorderingProductPosition({});
       if (categories.length === 0) {
         const derivedCategories = Array.from(
           new Set(loadedProducts.map((product) => product.category)),
@@ -105,6 +115,7 @@ export default function AdminProductsPage() {
 
       const data = (await response.json()) as { categories?: string[] };
       setCategories(data.categories ?? []);
+      setReorderingCategoryPosition({});
     } catch {
       // Fallback to categories derived from products.
     }
@@ -260,6 +271,55 @@ export default function AdminProductsPage() {
     }
   }
 
+  async function handleSetProductPosition(
+    id: string | undefined,
+    index: number,
+  ) {
+    if (!id) return;
+
+    const value = reorderingProductPosition[id]?.trim();
+    const position = Number(value);
+    if (!Number.isInteger(position) || position < 1) {
+      setStatus({ type: "error", message: "Enter a valid product position." });
+      return;
+    }
+
+    setReorderingProductId(id);
+    setStatus(null);
+
+    try {
+      const response = await fetch("/api/admin/products/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, position }),
+      });
+
+      const data = (await response.json()) as {
+        message?: string;
+        products?: Product[];
+      };
+
+      if (!response.ok) {
+        throw new Error(data.message ?? "Failed to reorder product.");
+      }
+
+      setProducts(data.products ?? []);
+      setReorderingProductPosition({});
+      setStatus({
+        type: "success",
+        message: "Product order updated successfully.",
+      });
+    } catch (error) {
+      setStatus({
+        type: "error",
+        message:
+          error instanceof Error ? error.message : "Failed to reorder product.",
+      });
+    } finally {
+      setReorderingProductId(null);
+    }
+  }
+
   async function handleMoveCategory(name: string, direction: "up" | "down") {
     setReorderingCategoryName(name);
     setStatus(null);
@@ -295,6 +355,100 @@ export default function AdminProductsPage() {
       });
     } finally {
       setReorderingCategoryName(null);
+    }
+  }
+
+  async function handleSetCategoryPosition(name: string, index: number) {
+    const value = reorderingCategoryPosition[name]?.trim();
+    const position = Number(value);
+    if (!Number.isInteger(position) || position < 1) {
+      setStatus({ type: "error", message: "Enter a valid category position." });
+      return;
+    }
+
+    setReorderingCategoryName(name);
+    setStatus(null);
+
+    try {
+      const response = await fetch("/api/admin/categories/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, position }),
+      });
+
+      const data = (await response.json()) as {
+        message?: string;
+        categories?: string[];
+      };
+
+      if (!response.ok) {
+        throw new Error(data.message ?? "Failed to reorder category.");
+      }
+
+      setCategories(data.categories ?? []);
+      setReorderingCategoryPosition({});
+      setStatus({
+        type: "success",
+        message: "Category order updated successfully.",
+      });
+    } catch (error) {
+      setStatus({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to reorder category.",
+      });
+    } finally {
+      setReorderingCategoryName(null);
+    }
+  }
+
+  async function handleDeleteCategory(name: string) {
+    const productUsesCategory = products.some(
+      (product) => product.category.toLowerCase() === name.toLowerCase(),
+    );
+
+    if (productUsesCategory) {
+      setStatus({
+        type: "error",
+        message: "Delete products in this category before removing it.",
+      });
+      return;
+    }
+
+    const shouldDelete = window.confirm(`Delete category \"${name}\"?`);
+    if (!shouldDelete) return;
+
+    setDeletingCategoryName(name);
+    setStatus(null);
+
+    try {
+      const response = await fetch("/api/admin/categories/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, action: "delete" }),
+      });
+
+      const data = (await response.json()) as {
+        message?: string;
+        categories?: string[];
+      };
+
+      if (!response.ok) {
+        throw new Error(data.message ?? "Failed to delete category.");
+      }
+
+      setCategories(data.categories ?? []);
+      setStatus({ type: "success", message: "Category deleted successfully." });
+    } catch (error) {
+      setStatus({
+        type: "error",
+        message:
+          error instanceof Error ? error.message : "Failed to delete category.",
+      });
+    } finally {
+      setDeletingCategoryName(null);
     }
   }
 
@@ -384,7 +538,7 @@ export default function AdminProductsPage() {
         />
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-6xl px-6 py-12 sm:px-10">
+      <div className="relative z-10 mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-10">
         <h1 className="text-3xl font-semibold sm:text-4xl">
           Product Management
         </h1>
@@ -595,21 +749,53 @@ export default function AdminProductsPage() {
           <p
             className={`mt-2 text-sm ${isDark ? "text-[#a3b4b0]" : "text-[#4f5d5b]"}`}
           >
-            Use the arrows to control the order shown on the home page.
+            Use the arrows or enter a number to control the order shown on the
+            home page.
           </p>
 
           <div className="mt-4 space-y-2">
             {categories.map((category, index) => (
               <div
                 key={category}
-                className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 ${
+                className={`flex flex-col gap-3 rounded-xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between ${
                   isDark
                     ? "border-white/10 bg-[#15201e]"
                     : "border-[#18201f]/10 bg-white"
                 }`}
               >
                 <span className="text-sm font-medium">{category}</span>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    type="number"
+                    min={1}
+                    max={categories.length}
+                    value={
+                      reorderingCategoryPosition[category] ?? String(index + 1)
+                    }
+                    onChange={(event) =>
+                      setReorderingCategoryPosition((prev) => ({
+                        ...prev,
+                        [category]: event.target.value,
+                      }))
+                    }
+                    className={`w-20 rounded-full border px-3 py-1.5 text-xs ${
+                      isDark
+                        ? "border-white/20 bg-[#0f1514] text-white"
+                        : "border-[#18201f]/20 bg-white text-[#18201f]"
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleSetCategoryPosition(category, index)}
+                    disabled={reorderingCategoryName === category}
+                    className={`rounded-full px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${
+                      isDark
+                        ? "bg-[#5f7f77] text-white"
+                        : "bg-[#18201f] text-white"
+                    }`}
+                  >
+                    Set
+                  </button>
                   <button
                     type="button"
                     onClick={() => handleMoveCategory(category, "up")}
@@ -639,6 +825,25 @@ export default function AdminProductsPage() {
                   >
                     Down
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteCategory(category)}
+                    disabled={
+                      deletingCategoryName === category ||
+                      products.some(
+                        (product) =>
+                          product.category.toLowerCase() ===
+                          category.toLowerCase(),
+                      )
+                    }
+                    className={`rounded-full border px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${
+                      isDark
+                        ? "border-white/25 text-white hover:bg-white/10"
+                        : "border-[#18201f]/20 text-[#18201f] hover:bg-[#18201f]/5"
+                    }`}
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             ))}
@@ -646,7 +851,7 @@ export default function AdminProductsPage() {
         </section>
 
         <section className="mt-10">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-2xl font-semibold">Current Products</h2>
             <button
               type="button"
@@ -704,7 +909,44 @@ export default function AdminProductsPage() {
                     {product.range || "Price on request"}
                   </p>
 
-                  <div className="mt-4 flex gap-2">
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <input
+                      type="number"
+                      min={1}
+                      max={products.length}
+                      value={
+                        reorderingProductPosition[
+                          product.id ?? product.title
+                        ] ?? String(index + 1)
+                      }
+                      onChange={(event) =>
+                        setReorderingProductPosition((prev) => ({
+                          ...prev,
+                          [product.id ?? product.title]: event.target.value,
+                        }))
+                      }
+                      className={`w-20 rounded-full border px-3 py-2 text-xs ${
+                        isDark
+                          ? "border-white/20 bg-[#0f1514] text-white"
+                          : "border-[#18201f]/20 bg-white text-[#18201f]"
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSetProductPosition(product.id, index)
+                      }
+                      disabled={
+                        reorderingProductId === product.id || !product.id
+                      }
+                      className={`rounded-full px-4 py-2 text-sm font-medium ${
+                        isDark
+                          ? "bg-[#5f7f77] text-white disabled:opacity-50"
+                          : "bg-[#18201f] text-white disabled:opacity-50"
+                      }`}
+                    >
+                      Set
+                    </button>
                     <button
                       type="button"
                       onClick={() => handleMoveProduct(product.id, "up")}

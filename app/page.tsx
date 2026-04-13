@@ -157,7 +157,7 @@ export default function Home() {
         />
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-20 pt-12 sm:px-10 sm:pt-16">
+      <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-16 pt-8 sm:px-6 sm:pb-20 sm:pt-12 lg:px-10 lg:pt-16">
         <div className="mb-8 flex justify-end">
           {/* <button
             type="button"
@@ -176,7 +176,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
-          className="grid items-end gap-10 md:grid-cols-[1.2fr_0.8fr]"
+          className="grid items-end gap-8 md:grid-cols-[1.2fr_0.8fr]"
         >
           <div>
             <p
@@ -244,7 +244,7 @@ export default function Home() {
             <p className="mt-2 text-4xl font-semibold">
               {products.length}+ products
             </p>
-            <div className="mt-6 grid grid-cols-2 gap-3 text-sm">
+            <div className="mt-6 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
               <div
                 className={`rounded-2xl p-3 ${isDark ? "bg-[#23312d]" : "bg-[#eef4e9]"}`}
               >
@@ -318,7 +318,7 @@ export default function Home() {
                 Filter the collection to match your current focus.
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex max-w-full flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
               {categoryOptions.map((category) => {
                 const active = activeCategory === category;
                 return (
@@ -334,7 +334,7 @@ export default function Home() {
                         : isDark
                           ? "border border-white/20 bg-white/5 text-white hover:border-white/35"
                           : "border border-[#18201f]/20 bg-white/80 text-[#18201f] hover:border-[#18201f]/35"
-                    }`}
+                    } whitespace-nowrap`}
                   >
                     {category}
                   </button>
