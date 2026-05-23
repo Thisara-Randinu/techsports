@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { Roboto } from "next/font/google";
 import ThemeRegistry from "./ThemeRegistry";
+import { getAppUrl } from "@/lib/app-url";
 import "./globals.css";
 
 const roboto = Roboto({
@@ -11,7 +12,7 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://myofficialdomain.com/warranty"),
+  metadataBase: new URL(getAppUrl()),
   title: "TechSport Warranty Portal",
   description:
     "TechSport warranty and product support portal embedded under the company website.",

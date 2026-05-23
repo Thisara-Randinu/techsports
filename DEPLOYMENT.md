@@ -5,6 +5,8 @@ This project is configured for embedded hosting under:
 - Main site: `https://myofficialdomain.com`
 - Warranty portal: `https://myofficialdomain.com/warranty`
 
+> Replace `myofficialdomain.com` with your actual production domain.
+
 ## 1) Next.js subdirectory configuration
 
 Implemented in `next.config.ts`:
