@@ -1,4 +1,4 @@
-# TechSports Warranty Portal
+# TechSport Warranty Portal
 
 This project is a Next.js App Router application designed to run as an embedded portal under a company website subdirectory.
 
