@@ -1,118 +1,193 @@
-# TechSports - Under Construction Landing Page
+# Deployment Guide (Subdirectory: `/warranty`)
 
-## Overview
-This is a polished "Under Construction" landing page built with Material 3 expressive theme, featuring smooth animations, dark mode support, and a Google-like design aesthetic.
+This project is configured for embedded hosting under:
 
-## Features
-✨ **Material 3 Expressive Theme** - Following Google's latest design guidelines
-🌓 **Dark/Light Mode** - Toggle between themes with smooth transitions
-🎬 **Rich Animations** - Powered by Framer Motion
-  - Floating gradient backgrounds
-  - Pulsing construction icon
-  - Staggered content reveal
-  - Animated progress bar
-  - Smooth hover effects
-📱 **Fully Responsive** - Optimized for all screen sizes
-🚀 **Production Ready** - Built and optimized with Next.js
+- Main site: `https://myofficialdomain.com`
+- Warranty portal: `https://myofficialdomain.com/warranty`
 
-## Tech Stack
-- Next.js 16.2.1 (App Router)
-- React 19.2.4
-- Material-UI v7 (MUI)
-- Framer Motion 12.38.0
-- TypeScript
-- TailwindCSS
+## 1) Next.js subdirectory configuration
 
-## Running the Application
+Implemented in `next.config.ts`:
 
-### Development Mode
-\`\`\`bash
-pnpm dev
-\`\`\`
-Then open http://localhost:3000
+- `basePath: "/warranty"`
+- `assetPrefix: "/warranty"`
+- image path: `"/warranty/_next/image"`
 
-### Production Mode
-\`\`\`bash
-# Build the app
+All app routes, APIs, and assets resolve under `/warranty`.
+
+## 2) Required routes
+
+The following routes are available under subpath hosting:
+
+- `/warranty`
+- `/warranty/admin`
+- `/warranty/admin/products`
+- `/warranty/dashboard`
+- `/warranty/login`
+- `/warranty/register`
+- `/warranty/api/*`
+
+## 3) Clerk configuration for subpath callbacks
+
+Set these env values:
+
+- `CLERK_SIGN_IN_URL=/warranty/login`
+- `CLERK_SIGN_UP_URL=/warranty/register`
+- `CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/warranty/dashboard`
+- `CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/warranty/dashboard`
+- `CLERK_AFTER_SIGN_OUT_URL=/warranty/login`
+
+In Clerk dashboard:
+
+- Allowed callback/redirect origins must include `https://myofficialdomain.com`
+- Redirect URLs must include `/warranty/...`
+
+## 4) Static assets / uploads / animations / PDFs
+
+- Next static chunks load from `/warranty/_next/*`
+- API-driven assets use prefixed URLs (e.g. `/warranty/api/blob?...`)
+- Keep generated PDFs under API routes or public paths prefixed by `/warranty`
+
+## 5) Vercel deployment
+
+1. Import repository in Vercel
+2. Framework preset: Next.js
+3. Build command: `pnpm build`
+4. Output: default (`.next`)
+5. Start command: `pnpm start`
+6. Add env vars from `.env.example`
+7. Set `NEXT_PUBLIC_APP_URL=https://myofficialdomain.com/warranty`
+
+If your company website reverse-proxies to Vercel, map only `/warranty` to this app.
+
+## 6) cPanel deployment
+
+### Option A: Node.js app (recommended)
+
+1. Create Node.js app in cPanel (Node 20+)
+2. Upload project
+3. Install deps: `pnpm install --frozen-lockfile`
+4. Build: `pnpm build`
+5. Start: `pnpm start`
+6. Configure Apache/Nginx proxy from `/warranty` to Node app port
+
+### Option B: Reverse proxy through existing site
+
+- Keep existing site at `/`
+- Proxy `/warranty` traffic to the Next.js app process
+
+## 7) Nginx reverse proxy example
+
+```nginx
+location /warranty {
+    proxy_pass http://localhost:3000;
+    proxy_http_version 1.1;
+
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Prefix /warranty;
+
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+
+    proxy_read_timeout 300;
+    proxy_connect_timeout 60;
+    proxy_send_timeout 300;
+}
+```
+
+## 8) Apache configuration
+
+### `.htaccess` (proxy `/warranty` to Node)
+
+```apache
+RewriteEngine On
+
+RewriteCond %{REQUEST_URI} ^/warranty(/.*)?$
+RewriteRule ^warranty/(.*)$ http://127.0.0.1:3000/warranty/$1 [P,L]
+RewriteRule ^warranty$ http://127.0.0.1:3000/warranty [P,L]
+
+RequestHeader set X-Forwarded-Proto "https"
+RequestHeader set X-Forwarded-Prefix "/warranty"
+```
+
+### VirtualHost reverse proxy
+
+```apache
+ProxyPreserveHost On
+ProxyPass /warranty http://127.0.0.1:3000/warranty
+ProxyPassReverse /warranty http://127.0.0.1:3000/warranty
+```
+
+## 9) Build and run commands
+
+```bash
+# install
+pnpm install --frozen-lockfile
+
+# build
 pnpm build
 
-# Start production server
+# start production server
 pnpm start
-\`\`\`
-Then open http://localhost:3000
+```
 
-## Key Components
+### PM2
 
-### Theme System
-- `app/theme.ts` - Material 3 color palette and component styles
-- `app/ThemeRegistry.tsx` - Theme provider with dark/light mode toggle
-- Persists theme preference in localStorage
-- Detects system color scheme preference
+```bash
+pm2 start "pnpm start" --name techsports-warranty
+pm2 save
+pm2 startup
+```
 
-### Main Component
-- `app/components/UnderConstruction.tsx` - Landing page with:
-  - Animated gradient backgrounds
-  - Theme toggle button
-  - Construction icon with glow effect
-  - Progress indicator showing 67% completion
-  - Call-to-action buttons
-  - Responsive layout
+## 10) Docker deployment
 
-## Customization
+```bash
+docker build -t techsports-warranty .
+docker run -d --name techsports-warranty -p 3000:3000 --env-file .env techsports-warranty
+```
 
-### Colors
-Edit `app/theme.ts` to customize the Material 3 color palette.
+Or:
 
-### Progress
-Change the progress percentage in `UnderConstruction.tsx`:
-\`\`\`typescript
-animate={{ width: '67%' }} // Change this value
-\`\`\`
+```bash
+docker compose up -d --build
+```
 
-### Content
-Update text, buttons, and animations in `app/components/UnderConstruction.tsx`.
+## 11) SEO / metadata / sitemap
 
-## Design Philosophy
-- Material 3 expressive design language
-- Soft, rounded corners (28px border radius)
-- Elevated surfaces with subtle shadows
-- Gradient backgrounds for visual interest
-- Smooth, meaningful animations
-- High contrast for accessibility
+- Root metadata includes canonical base for `/warranty`
+- `app/sitemap.ts` generates URLs under `NEXT_PUBLIC_APP_URL` (default includes `/warranty`)
+- Ensure production env uses: `NEXT_PUBLIC_APP_URL=https://myofficialdomain.com/warranty`
 
-Enjoy your beautiful under construction page! 🎉
+## 12) Troubleshooting / common fixes
 
-## 🎨 Animation Features
+### Blank styles or missing JS
 
-### Bouncing & Morphing Shapes
-The landing page features a sophisticated Material 3 expressive shape animation system:
+- Confirm `basePath` and `assetPrefix` are `/warranty`
+- Verify proxy forwards `/warranty/_next/*`
 
-**Features:**
-- 🎯 **8 Dynamic Shapes** - Bouncing smoothly across the screen
-- 🔄 **Shape Morphing** - Transforms between Material 3 border radius values:
-  - Sharp corners (0px)
-  - Small rounded (8px) 
-  - Medium rounded (16px)
-  - Large rounded (28px - Material 3 expressive)
-  - Pill shapes (50% - fully rounded)
-- 🌈 **Color Variations** - Uses Material 3 palette colors with transparency
-- 🎭 **Rotation Animation** - Each shape rotates while moving
-- ⚡ **Spring Physics** - Smooth, organic motion using spring animations
-- 🎪 **Blur & Glow** - Backdrop blur and glowing shadows for depth
-- 🌓 **Theme Aware** - Different colors for dark and light modes
+### API 404s
 
-**How it Works:**
-- Each shape independently moves to random positions
-- Shapes morph their border radius at different intervals
-- Uses Framer Motion's spring physics for natural movement
-- Low opacity and blur create a subtle, polished background effect
+- Ensure frontend calls `/warranty/api/*` (already handled in code)
+- Confirm reverse proxy includes `/warranty/api`
 
-**Customization:**
-Edit `app/components/BouncingShapes.tsx` to adjust:
-- Number of shapes: Change `SHAPES_COUNT`
-- Speed: Modify `duration` values
-- Colors: Update the `colors` array
-- Size range: Adjust `size` calculation
-- Blur amount: Change `filter` and `backdropFilter` values
+### Clerk redirects to root (`/`)
 
-The animation creates a dynamic, modern feel while maintaining Material 3's expressive design language! 🚀
+- Re-check Clerk redirect URLs include `/warranty`
+- Re-check `CLERK_*` env variables
+
+### Admin auth prompt not appearing
+
+- Verify `ADMIN_USERNAME` and `ADMIN_PASSWORD`
+- Confirm proxy/middleware is active for `/warranty/admin*`
+
+## 13) Production optimization tips
+
+- Enable gzip/brotli on reverse proxy
+- Keep Node app behind Nginx/Apache for TLS termination
+- Run with PM2 or container restart policy
+- Use Redis and Blob credentials from secure env vars only
+- Monitor response times for `/warranty/api/*`

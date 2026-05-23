@@ -11,9 +11,13 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "TechSport",
+  metadataBase: new URL("https://myofficialdomain.com/warranty"),
+  title: "TechSport Warranty Portal",
   description:
-    "We're building something amazing. Stay tuned for the big reveal!",
+    "TechSport warranty and product support portal embedded under the company website.",
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export const viewport: Viewport = {

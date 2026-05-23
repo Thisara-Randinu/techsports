@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { useThemeMode } from "./ThemeRegistry";
 import { type Product } from "@/lib/products";
+import { APP_BASE_PATH, withBasePath } from "@/lib/base-path";
 
 const aboutPoints = [
   {
@@ -22,14 +23,18 @@ const aboutPoints = [
 ];
 
 function resolveProductImageSrc(image: string) {
-  if (image.startsWith("/api/blob?")) {
+  if (image.startsWith(`${APP_BASE_PATH}/api/blob?`)) {
     return image;
+  }
+
+  if (image.startsWith("/api/blob?")) {
+    return withBasePath(image);
   }
 
   try {
     const url = new URL(image);
     if (url.hostname.includes(".private.blob.vercel-storage.com")) {
-      return `/api/blob?pathname=${encodeURIComponent(url.pathname.slice(1))}`;
+      return withBasePath(`/api/blob?pathname=${encodeURIComponent(url.pathname.slice(1))}`);
     }
   } catch {
     // Keep non-URL values as-is.
@@ -51,8 +56,8 @@ export default function Home() {
     async function loadData() {
       try {
         const [productsResponse, categoriesResponse] = await Promise.all([
-          fetch("/api/products", { cache: "no-store" }),
-          fetch("/api/categories", { cache: "no-store" }),
+          fetch(withBasePath("/api/products"), { cache: "no-store" }),
+          fetch(withBasePath("/api/categories"), { cache: "no-store" }),
         ]);
 
         let loadedProducts: Product[] = [];
