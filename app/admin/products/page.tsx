@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useThemeMode } from "@/app/ThemeRegistry";
 import { type Product } from "@/lib/products";
+import { APP_BASE_PATH, withBasePath } from "@/lib/base-path";
 
 type Status = {
   type: "success" | "error";
@@ -24,14 +25,18 @@ type FormState = {
 };
 
 function resolveProductImageSrc(image: string) {
-  if (image.startsWith("/api/blob?")) {
+  if (image.startsWith(`${APP_BASE_PATH}/api/blob?`)) {
     return image;
+  }
+
+  if (image.startsWith("/api/blob?")) {
+    return withBasePath(image);
   }
 
   try {
     const url = new URL(image);
     if (url.hostname.includes(".private.blob.vercel-storage.com")) {
-      return `/api/blob?pathname=${encodeURIComponent(url.pathname.slice(1))}`;
+      return withBasePath(`/api/blob?pathname=${encodeURIComponent(url.pathname.slice(1))}`);
     }
   } catch {
     // Keep non-URL values as-is.
@@ -79,7 +84,7 @@ export default function AdminProductsPage() {
   const loadProducts = useCallback(async () => {
     setIsLoadingProducts(true);
     try {
-      const response = await fetch("/api/products", { cache: "no-store" });
+      const response = await fetch(withBasePath("/api/products"), { cache: "no-store" });
       if (!response.ok) {
         throw new Error("Unable to load products.");
       }
@@ -106,7 +111,7 @@ export default function AdminProductsPage() {
 
   const loadCategories = useCallback(async () => {
     try {
-      const response = await fetch("/api/admin/categories", {
+      const response = await fetch(withBasePath("/api/admin/categories"), {
         cache: "no-store",
       });
       if (!response.ok) {
@@ -142,7 +147,7 @@ export default function AdminProductsPage() {
     setStatus(null);
 
     try {
-      const response = await fetch("/api/admin/categories", {
+      const response = await fetch(withBasePath("/api/admin/categories"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
@@ -205,7 +210,7 @@ export default function AdminProductsPage() {
     if (!shouldDelete) return;
 
     try {
-      const response = await fetch("/api/admin/products", {
+      const response = await fetch(withBasePath("/api/admin/products"), {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
@@ -240,7 +245,7 @@ export default function AdminProductsPage() {
     setStatus(null);
 
     try {
-      const response = await fetch("/api/admin/products/order", {
+      const response = await fetch(withBasePath("/api/admin/products/order"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, direction }),
@@ -288,7 +293,7 @@ export default function AdminProductsPage() {
     setStatus(null);
 
     try {
-      const response = await fetch("/api/admin/products/order", {
+      const response = await fetch(withBasePath("/api/admin/products/order"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, position }),
@@ -325,7 +330,7 @@ export default function AdminProductsPage() {
     setStatus(null);
 
     try {
-      const response = await fetch("/api/admin/categories/order", {
+      const response = await fetch(withBasePath("/api/admin/categories/order"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, direction }),
@@ -370,7 +375,7 @@ export default function AdminProductsPage() {
     setStatus(null);
 
     try {
-      const response = await fetch("/api/admin/categories/order", {
+      const response = await fetch(withBasePath("/api/admin/categories/order"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, position }),
@@ -424,7 +429,7 @@ export default function AdminProductsPage() {
     setStatus(null);
 
     try {
-      const response = await fetch("/api/admin/categories/order", {
+      const response = await fetch(withBasePath("/api/admin/categories/order"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, action: "delete" }),
@@ -483,7 +488,7 @@ export default function AdminProductsPage() {
     }
 
     try {
-      const response = await fetch("/api/admin/products", {
+      const response = await fetch(withBasePath("/api/admin/products"), {
         method: editingProductId ? "PATCH" : "POST",
         body: formData,
       });

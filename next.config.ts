@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  basePath: "/warranty",
+  assetPrefix: "/warranty",
   images: {
+    path: "/warranty/_next/image",
     remotePatterns: [
       {
         protocol: "https",
